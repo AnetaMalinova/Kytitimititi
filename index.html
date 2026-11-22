@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4D5B1F">
+<title>Kytitimiti</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kytitimiti">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* ===== Design tokens ===== */
+:root{
+  --bg:#F4F3E8; --surface:#FFFFFF; --surface-2:#ECEBDC; --border:#D9D8C6;
+  --text:#1E2310; --text-2:#545A41;
+  --primary:#4D5B1F; --primary-press:#3C4818; --on-primary:#FFFFFF; --primary-soft:#E3E7C9;
+  --water:#2F6F9F; --water-soft:#DCEAF5;
+  --warn:#9A4A12; --warn-soft:#F6E2D0;
+  --danger:#A3261B; --on-danger:#FFFFFF;
+  --shadow:0 1px 2px rgba(30,35,16,.06),0 4px 14px rgba(30,35,16,.08);
+  --radius-s:12px; --radius-m:18px; --radius-l:26px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+  --tap:44px; --fab:60px; --avatar:64px;
+  --font:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --fs-xs:.8125rem; --fs-s:.9375rem; --fs-m:1.0625rem; --fs-l:1.375rem; --fs-xl:1.875rem;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#12140C; --surface:#1C1F14; --surface-2:#262A1B; --border:#353A27;
+  --text:#EEF0E2; --text-2:#B9BDA4;
+  --primary:#B7C77C; --primary-press:#A3B567; --on-primary:#1A1F08; --primary-soft:#2F3719;
+  --water:#7DB8E6; --water-soft:#1C2E3C;
+  --warn:#F2A36B; --warn-soft:#3A2416;
+  --danger:#F08A80; --on-danger:#2A0905;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12140C; --surface:#1C1F14; --surface-2:#262A1B; --border:#353A27;
+    --text:#EEF0E2; --text-2:#B9BDA4;
+    --primary:#B7C77C; --primary-press:#A3B567; --on-primary:#1A1F08; --primary-soft:#2F3719;
+    --water:#7DB8E6; --water-soft:#1C2E3C;
+    --warn:#F2A36B; --warn-soft:#3A2416;
+    --danger:#F08A80; --on-danger:#2A0905;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;font-size:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:var(--fs-m);line-height:1.4;
+  -webkit-tap-highlight-color:transparent;min-height:100vh}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px;border-radius:8px}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.app{max-width:640px;margin:0 auto;padding:calc(var(--space-4) + var(--safe-t)) calc(var(--space-4) + var(--safe-r)) calc(var(--fab) + var(--space-6) + var(--safe-b)) calc(var(--space-4) + var(--safe-l))}
+
+/* Header */
+.top{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-4)}
+.logo{width:48px;height:48px;border-radius:16px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;flex:none;transform:rotate(-6deg)}
+.logo svg{width:30px;height:30px}
+.top h1{margin:0;font-size:var(--fs-xl);letter-spacing:-.02em;line-height:1.1}
+.top p{margin:2px 0 0;color:var(--text-2);font-size:var(--fs-s)}
+.top .grow{flex:1;min-width:0}
+.icon-btn{width:var(--tap);height:var(--tap);border-radius:50%;display:grid;place-items:center;color:var(--text-2)}
+.icon-btn:active{background:var(--surface-2)}
+
+/* Nudge */
+.nudge{display:flex;align-items:center;gap:var(--space-3);background:var(--water-soft);color:var(--text);border-radius:var(--radius-m);padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);font-size:var(--fs-s)}
+.nudge .grow{flex:1}
+.nudge button{min-height:var(--tap);padding:0 var(--space-3);border-radius:999px;font-weight:700;color:var(--water)}
+
+/* Cards */
+.list{display:grid;gap:var(--space-3);list-style:none;margin:0;padding:0}
+.card{position:relative;display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-l);padding:var(--space-3);box-shadow:var(--shadow)}
+.card.is-due{box-shadow:var(--shadow),inset 0 0 0 2px var(--warn)}
+.card-main{flex:1;display:flex;align-items:center;gap:var(--space-3);min-width:0;text-align:left;min-height:var(--tap);border-radius:var(--radius-m)}
+.avatar{position:relative;width:var(--avatar);height:var(--avatar);border-radius:22px;background:var(--primary-soft);flex:none;display:grid;place-items:center;font-size:34px;overflow:visible}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
+.mood{position:absolute;right:-6px;bottom:-6px;width:28px;height:28px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:17px;box-shadow:var(--shadow)}
+.meta{min-width:0;flex:1}
+.meta h2{margin:0;font-size:var(--fs-m);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-xs);font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--text-2)}
+.chip svg.i{width:15px;height:15px}
+.chip.due{background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--primary-soft);color:var(--primary)}
+.chip.done{background:var(--water-soft);color:var(--water)}
+.tank{height:6px;border-radius:3px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.tank i{display:block;height:100%;background:var(--water);border-radius:3px;transition:width .5s ease}
+.water-btn{position:relative;width:56px;height:56px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--water-soft);color:var(--water);transition:transform .15s}
+.water-btn.hot{background:var(--water);color:var(--surface)}
+.water-btn:active{transform:scale(.9)}
+.water-btn svg.i{width:28px;height:28px}
+
+/* Fun animations */
+@keyframes boing{0%{transform:scale(1)}30%{transform:scale(1.04,.96)}55%{transform:scale(.98,1.03)}100%{transform:scale(1)}}
+.card.boing{animation:boing .5s ease}
+.drop{position:fixed;width:10px;height:14px;background:var(--water);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;pointer-events:none;z-index:60;animation:fly .8s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.card.boing,.drop,.sheet,.toast{animation:none!important;transition:none!important}}
+
+/* Empty */
+.empty{text-align:center;padding:var(--space-6) var(--space-4)}
+.empty>svg{width:160px;height:160px}
+.empty h2{margin:var(--space-4) 0 var(--space-2);font-size:var(--fs-l)}
+.empty p{margin:0 auto var(--space-5);color:var(--text-2);max-width:28ch}
+
+/* Buttons */
+.btn{min-height:50px;padding:0 var(--space-5);border-radius:999px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2)}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:active{background:var(--primary-press)}
+.btn-soft{background:var(--surface-2);color:var(--text)}
+.btn-water{background:var(--water);color:var(--surface)}
+.btn-danger{background:var(--danger);color:var(--on-danger)}
+.btn-text{color:var(--danger);background:none}
+.btn-block{width:100%}
+.fab{position:fixed;right:calc(var(--space-5) + var(--safe-r));bottom:calc(var(--space-5) + var(--safe-b));width:var(--fab);height:var(--fab);border-radius:22px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;box-shadow:0 6px 20px rgba(45,55,15,.35);z-index:20}
+.fab svg.i{width:30px;height:30px;stroke-width:2.5}
+.fab:active{transform:scale(.94)}
+
+/* Sheet */
+.backdrop{position:fixed;inset:0;background:rgba(10,12,5,.45);z-index:40;opacity:0;transition:opacity .2s}
+.backdrop.show{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--bg);border-radius:var(--radius-l) var(--radius-l) 0 0;z-index:50;
+  padding:var(--space-2) calc(var(--space-4) + var(--safe-r)) calc(var(--space-5) + var(--safe-b)) calc(var(--space-4) + var(--safe-l));
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.9,.3,1);max-width:640px;margin:0 auto;overscroll-behavior:contain}
+.sheet.show{transform:translateY(0)}
+.grabber{width:40px;height:5px;border-radius:3px;background:var(--border);margin:4px auto var(--space-3)}
+.sheet-head{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-4)}
+.sheet-head h2{flex:1;margin:0;font-size:var(--fs-l)}
+.field{margin-bottom:var(--space-5)}
+.label{display:block;font-weight:700;font-size:var(--fs-s);margin-bottom:var(--space-2);color:var(--text-2)}
+.input,.textarea{width:100%;min-height:50px;border-radius:var(--radius-s);border:2px solid var(--border);background:var(--surface);padding:var(--space-3) var(--space-4)}
+.textarea{min-height:88px;resize:vertical}
+.input:focus,.textarea:focus{border-color:var(--primary);outline:none}
+.err{color:var(--danger);font-size:var(--fs-s);margin-top:var(--space-2)}
+.photo-pick{display:flex;align-items:center;gap:var(--space-4)}
+.photo-pick .avatar{width:96px;height:96px;font-size:48px;border-radius:30px}
+.photo-pick .avatar img{border-radius:30px}
+.photo-actions{display:flex;flex-direction:column;gap:var(--space-2);align-items:flex-start}
+.file-label{position:relative;overflow:hidden}
+.file-label input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2)}
+.seg button{min-height:72px;border-radius:var(--radius-m);background:var(--surface);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:600;font-size:var(--fs-s)}
+.seg button[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.seg.small button{min-height:var(--tap);flex-direction:row}
+.stepper{display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-m);padding:var(--space-2);border:2px solid var(--border)}
+.stepper button{width:48px;height:48px;border-radius:14px;background:var(--surface-2);font-size:1.5rem;font-weight:700}
+.stepper output{flex:1;text-align:center;font-weight:700;font-size:var(--fs-l)}
+.presets{display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-2)}
+.presets button{min-height:var(--tap);min-width:var(--tap);padding:0 var(--space-3);border-radius:999px;background:var(--surface-2);font-weight:600;font-size:var(--fs-s)}
+.presets button[aria-pressed="true"]{background:var(--primary);color:var(--on-primary)}
+.actions{display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-4)}
+
+/* Detail */
+.hero{width:100%;aspect-ratio:4/3;border-radius:var(--radius-l);background:var(--primary-soft);display:grid;place-items:center;font-size:96px;overflow:hidden;margin-bottom:var(--space-4)}
+.hero img{width:100%;height:100%;object-fit:cover}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-4)}
+.fact{background:var(--surface);border-radius:var(--radius-m);padding:var(--space-3)}
+.fact small{display:block;color:var(--text-2);font-size:var(--fs-xs);font-weight:600}
+.fact strong{display:flex;align-items:center;gap:6px;margin-top:2px}
+.note{background:var(--surface);border-radius:var(--radius-m);padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);white-space:pre-wrap}
+.hist{list-style:none;padding:0;margin:0 0 var(--space-4);display:flex;flex-wrap:wrap;gap:6px}
+.muted{color:var(--text-2);font-size:var(--fs-s)}
+.section-title{font-size:var(--fs-s);font-weight:700;color:var(--text-2);margin:var(--space-4) 0 var(--space-2)}
+.group{background:var(--surface);border-radius:var(--radius-m);padding:var(--space-4);margin-bottom:var(--space-4)}
+.group .btn{margin-top:var(--space-2)}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--fab) + var(--space-6) + var(--safe-b));transform:translate(-50%,20px);opacity:0;background:var(--text);color:var(--bg);border-radius:999px;padding:var(--space-2) var(--space-2) var(--space-2) var(--space-5);display:flex;align-items:center;gap:var(--space-3);z-index:70;width:max-content;max-width:calc(100% - 32px);transition:all .25s;box-shadow:var(--shadow);font-weight:600;font-size:var(--fs-s)}
+.toast{pointer-events:none;visibility:hidden}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto;visibility:visible}
+.toast button{min-height:var(--tap);padding:0 var(--space-4);border-radius:999px;font-weight:800;color:var(--primary-soft)}
+:root[data-theme="dark"] .toast button{color:var(--primary-press)}
+.toast:not(:has(button)){padding-right:var(--space-5);min-height:var(--tap)}
+</style>
+</head>
+<body>
+<div class="app" id="app" aria-live="polite"></div>
+<button class="fab" id="fab" type="button" hidden></button>
+<div id="layer"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   CONFIG
+   ========================================================= */
+const APP_VERSION = "0.2.0"; // shodně s CACHE_VERSION v sw.js
+const SCHEMA_VERSION = 1;
+const LIMITS = { intervalMin: 1, intervalMax: 60, photoMaxPx: 720, photoQuality: 0.8, historyMax: 30, toastMs: 5000 };
+const INTERVAL_PRESETS = [2, 3, 7, 10, 14];
+const FALLBACK_EMOJI = ["🪴", "🌿", "🌵", "🌱", "🌸", "🍀", "🌼", "🎍"];
+const LIGHTS = ["shade", "partial", "sun"];
+
+/* =========================================================
+   ENTITLEMENTS – jediné místo, které rozhoduje o přístupu k funkcím.
+   Později napojit na nákupy v App Storu (StoreKit přes Capacitor plugin).
+   ========================================================= */
+const Entitlements = {
+  plan: "free",
+  features: { free: { maxPlants: Infinity, photos: true, backup: true } },
+  can(feature, ctx) {
+    const f = this.features[this.plan] || {};
+    if (feature === "addPlant") return (ctx?.count ?? 0) < f.maxPlants;
+    return !!f[feature];
+  }
+};
+
+/* =========================================================
+   I18N – všechny texty na jednom místě
+   ========================================================= */
+const I18N = {
+  cs: {
+    summaryThirsty: n => `${n} ${P(n, "kytka má", "kytky mají", "kytek má")} žízeň`,
+    summaryHappy: "Všechny kytky jsou spokojené",
+    summaryEmpty: "Tvoje zelená parta začíná tady",
+    emptyTitle: "Zatím tu nic neroste",
+    emptyText: "Přidej první kytku a Kytitimiti ti připomene, kdy má žízeň.",
+    emptyCta: "Přidat první kytku",
+    add: "Přidat kytku", edit: "Upravit kytku", save: "Uložit", cancel: "Zrušit", close: "Zavřít",
+    del: "Smazat", undo: "Vrátit", settings: "Nastavení",
+    name: "Jméno", namePh: "Třeba Monika Monstera", nameRequired: "Kytka potřebuje jméno",
+    note: "Popisek", notePh: "Kde stojí, odkud je, co má ráda…",
+    photo: "Fotka", addPhoto: "Přidat fotku", changePhoto: "Změnit fotku", removePhoto: "Odebrat fotku", photoError: "Fotku se nepodařilo načíst",
+    light: "Světlo", light_shade: "Stín", light_partial: "Polostín", light_sun: "Slunce",
+    interval: "Jak často zalévat",
+    every: n => n === 1 ? "Každý den" : `Každé ${n} ${P(n, "den", "dny", "dní")}`.replace(/^Každé (\d+) dní$/, "Každých $1 dní"),
+    nDays: n => `${n} ${P(n, "den", "dny", "dní")}`,
+    minus: "Méně dní", plus: "Více dní",
+    lastWatered: "Kdy byla naposledy zalitá?", lw_today: "Dnes", lw_yesterday: "Včera", lw_unknown: "Nevím",
+    water: "Zalito!", waterAria: name => `${name}: označit jako zalitou`,
+    dueIn: n => n === 1 ? "Zítra" : `Za ${n} ${P(n, "den", "dny", "dní")}`,
+    dueToday: "Dnes zalít",
+    overdue: n => `Žízní ${n} ${P(n, "den", "dny", "dní")}`,
+    wateredToday: "Zalito dnes",
+    neverWatered: "Ještě nezalitá",
+    thanks: [n => `Glo glo! ${n} děkuje 💧`, n => `Ááách, to bodlo! – ${n}`, n => `${n} roste radostí 🌱`, n => `Mňam, voda! ${n} je happy`],
+    nextWatering: "Další zalití", lastWateredFact: "Naposledy",
+    history: "Historie zalévání",
+    confirmDeleteTitle: name => `Smazat ${name}?`,
+    confirmDeleteText: "Kytka i její historie zmizí. Hned po smazání to ještě půjde vrátit.",
+    deleted: "Kytka smazána", saved: "Uloženo", added: name => `${name} je v partě! 🎉`,
+    language: "Jazyk", lang_auto: "Systém", lang_cs: "Čeština", lang_en: "English",
+    theme: "Vzhled", theme_auto: "Systém", theme_light: "Světlý", theme_dark: "Tmavý",
+    backup: "Záloha", lastBackup: d => `Poslední záloha: ${d}`, neverBackup: "Zatím žádná záloha",
+    backupInfo: "Kytky i fotky jsou uložené jen v tomhle zařízení. Záloha je jediná pojistka, když se úložiště smaže.",
+    exportFile: "Uložit zálohu do souboru", exportCopy: "Zkopírovat zálohu", backupSaved: "Záloha uložena 💾", copied: "Záloha zkopírována", copyFailed: "Kopírování se nepovedlo",
+    importFile: "Obnovit ze souboru", importPaste: "Obnovit z vloženého textu", pasteHere: "Sem vlož text zálohy",
+    importConfirmTitle: "Obnovit zálohu?",
+    importConfirmText: n => `Současné kytky nahradí záloha (${n} ${P(n, "kytka", "kytky", "kytek")}). Hned potom to ještě půjde vrátit.`,
+    restore: "Obnovit", imported: "Záloha obnovena", importError: "Tohle nevypadá jako záloha Kytitimiti",
+    backupNudge: "Kytky žijí jen v tomhle zařízení. Udělej si zálohu.", backupNow: "Zálohovat",
+    storageWarn: "Úložiště není dostupné – změny se po zavření ztratí.",
+    about: v => `Kytitimiti ${v} · data zůstávají jen u tebe`,
+    openDetail: name => `Otevřít detail: ${name}`
+  },
+  en: {
+    summaryThirsty: n => `${n} ${P(n, "plant is", "plants are", "plants are")} thirsty`,
+    summaryHappy: "Every plant is happy",
+    summaryEmpty: "Your green crew starts here",
+    emptyTitle: "Nothing growing yet",
+    emptyText: "Add your first plant and Kytitimiti will tell you when it's thirsty.",
+    emptyCta: "Add first plant",
+    add: "Add plant", edit: "Edit plant", save: "Save", cancel: "Cancel", close: "Close",
+    del: "Delete", undo: "Undo", settings: "Settings",
+    name: "Name", namePh: "e.g. Monty the Monstera", nameRequired: "Your plant needs a name",
+    note: "Note", notePh: "Where it lives, where it's from, what it likes…",
+    photo: "Photo", addPhoto: "Add photo", changePhoto: "Change photo", removePhoto: "Remove photo", photoError: "Couldn't load the photo",
+    light: "Light", light_shade: "Shade", light_partial: "Part sun", light_sun: "Sun",
+    interval: "How often to water",
+    every: n => n === 1 ? "Every day" : `Every ${n} days`,
+    nDays: n => `${n} ${P(n, "day", "days", "days")}`,
+    minus: "Fewer days", plus: "More days",
+    lastWatered: "When was it last watered?", lw_today: "Today", lw_yesterday: "Yesterday", lw_unknown: "Not sure",
+    water: "Watered!", waterAria: name => `Mark ${name} as watered`,
+    dueIn: n => n === 1 ? "Tomorrow" : `In ${n} days`,
+    dueToday: "Water today",
+    overdue: n => `Thirsty for ${n} ${P(n, "day", "days", "days")}`,
+    wateredToday: "Watered today",
+    neverWatered: "Not watered yet",
+    thanks: [n => `Glug glug! ${n} says thanks 💧`, n => `Ahh, that hit the spot! – ${n}`, n => `${n} is growing with joy 🌱`, n => `Yum, water! ${n} is happy`],
+    nextWatering: "Next watering", lastWateredFact: "Last",
+    history: "Watering history",
+    confirmDeleteTitle: name => `Delete ${name}?`,
+    confirmDeleteText: "The plant and its history will be gone. You can still undo right after.",
+    deleted: "Plant deleted", saved: "Saved", added: name => `${name} joined the crew! 🎉`,
+    language: "Language", lang_auto: "System", lang_cs: "Čeština", lang_en: "English",
+    theme: "Appearance", theme_auto: "System", theme_light: "Light", theme_dark: "Dark",
+    backup: "Backup", lastBackup: d => `Last backup: ${d}`, neverBackup: "No backup yet",
+    backupInfo: "Plants and photos are stored only on this device. A backup is your only safety net if storage gets wiped.",
+    exportFile: "Save backup to file", exportCopy: "Copy backup", backupSaved: "Backup saved 💾", copied: "Backup copied", copyFailed: "Copy failed",
+    importFile: "Restore from file", importPaste: "Restore from pasted text", pasteHere: "Paste backup text here",
+    importConfirmTitle: "Restore backup?",
+    importConfirmText: n => `Your current plants will be replaced by the backup (${n} ${P(n, "plant", "plants", "plants")}). You can still undo right after.`,
+    restore: "Restore", imported: "Backup restored", importError: "This doesn't look like a Kytitimiti backup",
+    backupNudge: "Your plants live only on this device. Make a backup.", backupNow: "Back up",
+    storageWarn: "Storage unavailable – changes will be lost when you close the app.",
+    about: v => `Kytitimiti ${v} · your data stays with you`,
+    openDetail: name => `Open details: ${name}`
+  }
+};
+let LANG = "cs";
+function P(n, one, few, other) {
+  const r = new Intl.PluralRules(LANG).select(n);
+  return r === "one" ? one : r === "few" ? few : other;
+}
+function t(key, ...args) {
+  const v = (I18N[LANG] && I18N[LANG][key]) ?? I18N.cs[key];
+  return typeof v === "function" ? v(...args) : v;
+}
+
+/* =========================================================
+   ICONS (vlastní inline SVG)
+   ========================================================= */
+const ICONS = {
+  leaf: '<path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19c3-4 6-7 10-9"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  drop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  partial: '<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12 5.6A4 4 0 0 0 4.6 10"/><path d="M8 19h9a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.5 1.5A3.3 3.3 0 0 0 8 19z"/>',
+  shade: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'
+};
+const icon = (name, label) => `<svg class="i" viewBox="0 0 24 24" ${label ? `role="img" aria-label="${esc(label)}"` : 'aria-hidden="true"'}>${ICONS[name]}</svg>`;
+const EMPTY_ART = `<svg viewBox="0 0 160 160" aria-hidden="true"><ellipse cx="80" cy="146" rx="46" ry="6" fill="var(--surface-2)"/><path d="M48 96h64l-8 46H56z" fill="var(--primary)"/><rect x="44" y="88" width="72" height="14" rx="5" fill="var(--primary-press)"/><path d="M80 88V54" stroke="var(--primary)" stroke-width="5" stroke-linecap="round"/><path d="M80 66c-4-16-18-22-30-20 2 14 14 22 30 20z" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="3"/><path d="M80 58c3-18 17-26 30-24-1 15-14 25-30 24z" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="3"/><circle cx="68" cy="118" r="3" fill="var(--on-primary)"/><circle cx="92" cy="118" r="3" fill="var(--on-primary)"/><path d="M73 127q7 6 14 0" stroke="var(--on-primary)" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M118 30s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z" fill="var(--water)"/></svg>`;
+
+/* =========================================================
+   UTIL
+   ========================================================= */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const DAY = 86400000;
+const startOfDay = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const dayDiff = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) / DAY);
+const clone = o => JSON.parse(JSON.stringify(o));
+const inFrame = (() => { try { return window.self !== window.top; } catch { return true; } })();
+function fmtDate(iso, opts = { weekday: "short", day: "numeric", month: "numeric" }) {
+  return new Intl.DateTimeFormat(LANG, opts).format(new Date(iso));
+}
+
+/* =========================================================
+   DATA – schéma, migrace, úložiště
+   ========================================================= */
+function defaultState() {
+  return { schemaVersion: SCHEMA_VERSION, plants: [], settings: { lang: "auto", theme: "auto" }, lastBackupAt: null };
+}
+const MIGRATIONS = {
+  // 0 -> 1: příklad budoucích migrací; data bez verze považujeme za v0
+  0: s => ({ ...defaultState(), ...s, schemaVersion: 1 })
+};
+function migrate(raw) {
+  if (!raw || typeof raw !== "object") return defaultState();
+  let s = clone(raw);
+  let v = Number.isInteger(s.schemaVersion) ? s.schemaVersion : 0;
+  if (v > SCHEMA_VERSION) throw new Error("newer-schema");
+  while (v < SCHEMA_VERSION) { s = MIGRATIONS[v](s); v = s.schemaVersion; }
+  s.plants = Array.isArray(s.plants) ? s.plants.map(normalizePlant).filter(Boolean) : [];
+  s.settings = { ...defaultState().settings, ...(s.settings || {}) };
+  return s;
+}
+function normalizePlant(p) {
+  if (!p || typeof p.name !== "string") return null;
+  return {
+    id: p.id || uid(), name: p.name.slice(0, 80), note: String(p.note || "").slice(0, 1000),
+    photo: typeof p.photo === "string" && p.photo.startsWith("data:image/") ? p.photo : null,
+    emoji: p.emoji || FALLBACK_EMOJI[0],
+    light: LIGHTS.includes(p.light) ? p.light : "partial",
+    intervalDays: clamp(parseInt(p.intervalDays, 10) || 7, LIMITS.intervalMin, LIMITS.intervalMax),
+    lastWatered: p.lastWatered || null,
+    history: Array.isArray(p.history) ? p.history.slice(0, LIMITS.historyMax) : [],
+    createdAt: p.createdAt || new Date().toISOString()
+  };
+}
+
+const Store = (() => {
+  const DB = "kytitimiti", OS = "kv", KEY = "state";
+  let mode = "idb", mem = null;
+  function open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open(DB, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(OS);
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+  }
+  async function idb(fn) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(OS, "readwrite"); const st = tx.objectStore(OS);
+      const r = fn(st); tx.oncomplete = () => res(r && r.result); tx.onerror = () => rej(tx.error);
+    });
+  }
+  return {
+    get available() { return mode !== "memory"; },
+    async load() {
+      try { if (!window.indexedDB) throw 0; return await idb(st => st.get(KEY)); }
+      catch {
+        try { mode = "ls"; const s = localStorage.getItem(DB); return s ? JSON.parse(s) : null; }
+        catch { mode = "memory"; return mem; }
+      }
+    },
+    async save(state) {
+      try {
+        if (mode === "idb") return await idb(st => st.put(state, KEY));
+        if (mode === "ls") return localStorage.setItem(DB, JSON.stringify(state));
+      } catch { mode = "memory"; }
+      mem = clone(state);
+    }
+  };
+})();
+
+/* =========================================================
+   LOGIKA – čisté funkce nad daty
+   ========================================================= */
+function plantStatus(p, now = new Date()) {
+  const interval = p.intervalDays;
+  const daysUntil = p.lastWatered ? interval - dayDiff(p.lastWatered, now) : 0;
+  const wateredToday = !!p.lastWatered && dayDiff(p.lastWatered, now) === 0;
+  let kind, label, mood;
+  if (wateredToday) { kind = "done"; label = t("wateredToday"); mood = "😊"; }
+  else if (daysUntil < 0) { kind = "due"; label = t("overdue", -daysUntil); mood = "🥵"; }
+  else if (daysUntil === 0) { kind = "due"; label = t("dueToday"); mood = "😮"; }
+  else { kind = "ok"; label = t("dueIn", daysUntil); mood = daysUntil / interval > .5 ? "😊" : "🙂"; }
+  const level = p.lastWatered ? clamp(daysUntil / interval, 0, 1) : 0;
+  const next = new Date(startOfDay(p.lastWatered || now).getTime() + (p.lastWatered ? interval : 0) * DAY);
+  return { daysUntil, kind, label, mood, level, isDue: kind === "due", next };
+}
+const sortPlants = plants => [...plants].sort((a, b) => plantStatus(a).daysUntil - plantStatus(b).daysUntil || a.name.localeCompare(b.name, LANG));
+function waterPlant(p, when = new Date()) {
+  const iso = when.toISOString();
+  return { ...p, lastWatered: iso, history: [iso, ...p.history].slice(0, LIMITS.historyMax) };
+}
+function needsBackupNudge(s, now = new Date()) {
+  if (!s.plants.length) return false;
+  if (!s.lastBackupAt) return s.plants.length >= 2;
+  return dayDiff(s.lastBackupAt, now) >= 30;
+}
+function buildBackup(s) {
+  return JSON.stringify({ app: "kytitimiti", exportedAt: new Date().toISOString(), appVersion: APP_VERSION, data: { ...s, lastBackupAt: undefined } });
+}
+function parseBackup(text) {
+  const o = JSON.parse(text);
+  if (!o || o.app !== "kytitimiti" || !o.data) throw new Error("bad");
+  return migrate(o.data);
+}
+
+/* =========================================================
+   STAV APLIKACE
+   ========================================================= */
+let state = defaultState();
+let undoSnapshot = null;
+async function commit(mutator, { undoable = false } = {}) {
+  if (undoable) undoSnapshot = clone(state);
+  mutator(state);
+  await Store.save(state);
+  render();
+}
+async function undo() {
+  if (!undoSnapshot) return;
+  state = undoSnapshot; undoSnapshot = null;
+  await Store.save(state); applySettings(); render(); closeSheet();
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+const $app = document.getElementById("app");
+const $fab = document.getElementById("fab");
+const $layer = document.getElementById("layer");
+const $toast = document.getElementById("toast");
+
+function applySettings() {
+  const s = state.settings;
+  LANG = s.lang === "auto" ? ((navigator.language || "cs").toLowerCase().startsWith("cs") ? "cs" : "en") : s.lang;
+  document.documentElement.lang = LANG;
+  if (s.theme === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.dataset.theme = s.theme;
+}
+
+function render() {
+  const plants = sortPlants(state.plants);
+  const thirsty = plants.filter(p => plantStatus(p).isDue).length;
+  const summary = !plants.length ? t("summaryEmpty") : thirsty ? t("summaryThirsty", thirsty) : t("summaryHappy") + " 🌞";
+  document.title = thirsty ? `(${thirsty}) Kytitimiti` : "Kytitimiti";
+
+  let html = `<header class="top">
+    <div class="logo">${icon("leaf")}</div>
+    <div class="grow"><h1>Kytitimiti</h1><p>${esc(summary)}</p></div>
+    <button class="icon-btn" type="button" data-act="settings" aria-label="${esc(t("settings"))}">${icon("gear")}</button>
+  </header>`;
+  if (!Store.available) html += `<div class="nudge" role="alert"><span class="grow">${esc(t("storageWarn"))}</span></div>`;
+  else if (needsBackupNudge(state)) html += `<div class="nudge"><span class="grow">${esc(t("backupNudge"))}</span><button type="button" data-act="settings">${esc(t("backupNow"))}</button></div>`;
+
+  if (!plants.length) {
+    html += `<section class="empty">${EMPTY_ART}<h2>${esc(t("emptyTitle"))}</h2><p>${esc(t("emptyText"))}</p>
+      <button class="btn btn-primary" type="button" data-act="add">${icon("plus")}${esc(t("emptyCta"))}</button></section>`;
+  } else {
+    html += `<ul class="list">${plants.map(cardHtml).join("")}</ul>`;
+  }
+  $app.innerHTML = html;
+  $fab.hidden = !plants.length;
+  $fab.innerHTML = icon("plus");
+  $fab.setAttribute("aria-label", t("add"));
+}
+
+function avatarHtml(p, withMood, mood) {
+  const inner = p.photo ? `<img src="${p.photo}" alt="">` : `<span aria-hidden="true">${p.emoji}</span>`;
+  return `<span class="avatar">${inner}${withMood ? `<span class="mood" aria-hidden="true">${mood}</span>` : ""}</span>`;
+}
+function cardHtml(p) {
+  const st = plantStatus(p);
+  return `<li class="card ${st.isDue ? "is-due" : ""}" data-id="${p.id}">
+    <button class="card-main" type="button" data-act="detail" aria-label="${esc(t("openDetail", p.name))}">
+      ${avatarHtml(p, true, st.mood)}
+      <span class="meta">
+        <h2>${esc(p.name)}</h2>
+        <span class="chips">
+          <span class="chip ${st.kind}">${icon(st.kind === "done" ? "check" : "drop")}${esc(st.label)}</span>
+          <span class="chip">${icon(p.light)}${esc(t("light_" + p.light))}</span>
+        </span>
+        <span class="tank" aria-hidden="true"><i style="width:${Math.round(st.level * 100)}%"></i></span>
+      </span>
+    </button>
+    <button class="water-btn ${st.isDue ? "hot" : ""}" type="button" data-act="water" aria-label="${esc(t("waterAria", p.name))}">${icon("drop")}</button>
+  </li>`;
+}
+
+/* ----- Toast ----- */
+let toastTimer;
+function toast(msg, withUndo = false) {
+  clearTimeout(toastTimer);
+  $toast.innerHTML = `<span>${esc(msg)}</span>${withUndo ? `<button type="button" data-act="undo">${esc(t("undo"))}</button>` : ""}`;
+  $toast.classList.add("show");
+  toastTimer = setTimeout(() => $toast.classList.remove("show"), LIMITS.toastMs);
+}
+$toast.addEventListener("click", e => { if (e.target.closest("[data-act=undo]")) { $toast.classList.remove("show"); undo(); } });
+
+/* ----- Sheets ----- */
+let lastFocus = null;
+function openSheet(title, bodyHtml, onMount) {
+  lastFocus = document.activeElement;
+  $toast.classList.remove("show");
+  $layer.innerHTML = `<div class="backdrop" data-act="close-sheet"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="grabber" aria-hidden="true"></div>
+      <div class="sheet-head"><h2 id="sheet-title">${esc(title)}</h2>
+        <button class="icon-btn" type="button" data-act="close-sheet" aria-label="${esc(t("close"))}">${icon("close")}</button></div>
+      <div class="sheet-body">${bodyHtml}</div>
+    </div>`;
+  const sheet = $layer.querySelector(".sheet");
+  requestAnimationFrame(() => { $layer.querySelector(".backdrop").classList.add("show"); sheet.classList.add("show"); });
+  onMount && onMount(sheet);
+  setTimeout(() => (sheet.querySelector("[autofocus]") || sheet.querySelector(".sheet-head .icon-btn")).focus({ preventScroll: true }), 50);
+}
+function closeSheet() {
+  const sheet = $layer.querySelector(".sheet");
+  if (!sheet) return;
+  sheet.classList.remove("show"); $layer.querySelector(".backdrop").classList.remove("show");
+  setTimeout(() => { $layer.innerHTML = ""; lastFocus && lastFocus.focus && document.contains(lastFocus) && lastFocus.focus(); }, 220);
+}
+$layer.addEventListener("click", e => { if (e.target.closest("[data-act=close-sheet]")) closeSheet(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+function confirmDialog({ title, text, okLabel, danger = true }) {
+  return new Promise(resolve => {
+    openSheet(title, `<p class="muted">${esc(text)}</p>
+      <div class="actions">
+        <button class="btn ${danger ? "btn-danger" : "btn-primary"} btn-block" type="button" data-r="1">${esc(okLabel)}</button>
+        <button class="btn btn-soft btn-block" type="button" data-r="0" autofocus>${esc(t("cancel"))}</button>
+      </div>`, sheet => {
+      sheet.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if (b) { closeSheet(); resolve(b.dataset.r === "1"); } });
+      $layer.querySelector(".backdrop").addEventListener("click", () => resolve(false));
+    });
+  });
+}
+
+/* ----- Add / edit form ----- */
+function openForm(plant) {
+  const isNew = !plant;
+  const draft = plant ? clone(plant) : { name: "", note: "", photo: null, light: "partial", intervalDays: 7, emoji: FALLBACK_EMOJI[Math.floor(Math.random() * FALLBACK_EMOJI.length)], lw: "today" };
+  const body = `<form id="pf" novalidate>
+    <div class="field photo-pick">
+      <span id="pf-av"></span>
+      <div class="photo-actions">
+        <label class="btn btn-soft file-label">${icon("camera")}<span id="pf-photo-lbl"></span>
+          <input type="file" accept="image/*" id="pf-file" aria-label="${esc(t("photo"))}"></label>
+        <button type="button" class="btn btn-text" id="pf-rm" hidden>${esc(t("removePhoto"))}</button>
+      </div>
+    </div>
+    <div class="field"><label class="label" for="pf-name">${esc(t("name"))}</label>
+      <input class="input" id="pf-name" maxlength="80" autocomplete="off" placeholder="${esc(t("namePh"))}" value="${esc(draft.name)}" ${isNew ? "autofocus" : ""}>
+      <div class="err" id="pf-err" hidden>${esc(t("nameRequired"))}</div></div>
+    <div class="field"><span class="label" id="pf-light-l">${esc(t("light"))}</span>
+      <div class="seg" role="group" aria-labelledby="pf-light-l">${LIGHTS.map(l => `<button type="button" data-light="${l}" aria-pressed="${draft.light === l}">${icon(l)}${esc(t("light_" + l))}</button>`).join("")}</div></div>
+    <div class="field"><span class="label" id="pf-int-l">${esc(t("interval"))}</span>
+      <div class="stepper" role="group" aria-labelledby="pf-int-l">
+        <button type="button" data-step="-1" aria-label="${esc(t("minus"))}">−</button>
+        <output id="pf-int" aria-live="polite"></output>
+        <button type="button" data-step="1" aria-label="${esc(t("plus"))}">+</button></div>
+      <div class="presets">${INTERVAL_PRESETS.map(n => `<button type="button" data-preset="${n}">${esc(t("nDays", n))}</button>`).join("")}</div></div>
+    ${isNew ? `<div class="field"><span class="label" id="pf-lw-l">${esc(t("lastWatered"))}</span>
+      <div class="seg small" role="group" aria-labelledby="pf-lw-l">${["today", "yesterday", "unknown"].map(k => `<button type="button" data-lw="${k}" aria-pressed="${draft.lw === k}">${esc(t("lw_" + k))}</button>`).join("")}</div></div>` : ""}
+    <div class="field"><label class="label" for="pf-note">${esc(t("note"))}</label>
+      <textarea class="textarea" id="pf-note" maxlength="1000" placeholder="${esc(t("notePh"))}">${esc(draft.note)}</textarea></div>
+    <button class="btn btn-primary btn-block" type="submit">${esc(t("save"))}</button>
+  </form>`;
+
+  openSheet(isNew ? t("add") : t("edit"), body, sheet => {
+    const $ = s => sheet.querySelector(s);
+    const sync = () => {
+      $("#pf-av").innerHTML = avatarHtml(draft, false);
+      $("#pf-photo-lbl").textContent = draft.photo ? t("changePhoto") : t("addPhoto");
+      $("#pf-rm").hidden = !draft.photo;
+      $("#pf-int").textContent = t("every", draft.intervalDays);
+      sheet.querySelectorAll("[data-preset]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.preset === draft.intervalDays));
+      sheet.querySelectorAll("[data-light]").forEach(b => b.setAttribute("aria-pressed", b.dataset.light === draft.light));
+      sheet.querySelectorAll("[data-lw]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lw === draft.lw));
+    };
+    sync();
+    sheet.addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.light) draft.light = b.dataset.light;
+      else if (b.dataset.step) draft.intervalDays = clamp(draft.intervalDays + +b.dataset.step, LIMITS.intervalMin, LIMITS.intervalMax);
+      else if (b.dataset.preset) draft.intervalDays = +b.dataset.preset;
+      else if (b.dataset.lw) draft.lw = b.dataset.lw;
+      else if (b.id === "pf-rm") draft.photo = null;
+      else return;
+      sync();
+    });
+    $("#pf-file").addEventListener("change", async e => {
+      const f = e.target.files[0]; if (!f) return;
+      try { draft.photo = await resizeImage(f); sync(); } catch { toast(t("photoError")); }
+      e.target.value = "";
+    });
+    $("#pf-name").addEventListener("input", () => { $("#pf-err").hidden = true; });
+    $("#pf").addEventListener("submit", async e => {
+      e.preventDefault();
+      const name = $("#pf-name").value.trim();
+      if (!name) { $("#pf-err").hidden = false; $("#pf-name").focus(); return; }
+      draft.name = name; draft.note = $("#pf-note").value.trim();
+      if (isNew) {
+        const now = new Date();
+        let p = normalizePlant({ ...draft, id: uid(), history: [] });
+        if (draft.lw === "today") p = waterPlant(p, now);
+        else if (draft.lw === "yesterday") p = waterPlant(p, new Date(now.getTime() - DAY));
+        await commit(s => s.plants.push(p));
+        closeSheet(); toast(t("added", p.name));
+      } else {
+        await commit(s => { const i = s.plants.findIndex(x => x.id === plant.id); s.plants[i] = normalizePlant({ ...s.plants[i], ...draft }); }, { undoable: true });
+        closeSheet(); toast(t("saved"), true);
+      }
+    });
+  });
+}
+
+function resizeImage(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, LIMITS.photoMaxPx / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", LIMITS.photoQuality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("img")); };
+    img.src = url;
+  });
+}
+
+/* ----- Detail ----- */
+function openDetail(id) {
+  const p = state.plants.find(x => x.id === id); if (!p) return;
+  const st = plantStatus(p);
+  const hist = p.history.length
+    ? `<ul class="hist">${p.history.slice(0, 12).map(h => `<li class="chip done">${icon("drop")}${esc(fmtDate(h))}</li>`).join("")}</ul>`
+    : `<p class="muted">${esc(t("neverWatered"))}</p>`;
+  const body = `<div class="hero">${p.photo ? `<img src="${p.photo}" alt="${esc(p.name)}">` : `<span aria-hidden="true">${p.emoji}</span>`}</div>
+    <div class="facts">
+      <div class="fact"><small>${esc(t("nextWatering"))}</small><strong>${icon("calendar")}${esc(st.isDue ? st.label : fmtDate(st.next))}</strong></div>
+      <div class="fact"><small>${esc(t("interval"))}</small><strong>${icon("drop")}${esc(t("every", p.intervalDays))}</strong></div>
+      <div class="fact"><small>${esc(t("light"))}</small><strong>${icon(p.light)}${esc(t("light_" + p.light))}</strong></div>
+      <div class="fact"><small>${esc(t("lastWateredFact"))}</small><strong>${esc(p.lastWatered ? fmtDate(p.lastWatered) : "—")}</strong></div>
+    </div>
+    ${p.note ? `<div class="note">${esc(p.note)}</div>` : ""}
+    <div class="section-title">${esc(t("history"))}</div>${hist}
+    <div class="actions">
+      <button class="btn btn-water btn-block" type="button" data-d="water">${icon("drop")}${esc(t("water"))}</button>
+      <button class="btn btn-soft btn-block" type="button" data-d="edit">${icon("edit")}${esc(t("edit"))}</button>
+      <button class="btn btn-text btn-block" type="button" data-d="delete">${icon("trash")}${esc(t("del"))}</button>
+    </div>`;
+  openSheet(p.name, body, sheet => {
+    sheet.addEventListener("click", async e => {
+      const b = e.target.closest("[data-d]"); if (!b) return;
+      if (b.dataset.d === "water") { closeSheet(); doWater(p.id); }
+      if (b.dataset.d === "edit") { closeSheet(); setTimeout(() => openForm(p), 230); }
+      if (b.dataset.d === "delete") {
+        closeSheet();
+        await new Promise(r => setTimeout(r, 230));
+        const ok = await confirmDialog({ title: t("confirmDeleteTitle", p.name), text: t("confirmDeleteText"), okLabel: t("del") });
+        if (ok) { await commit(s => { s.plants = s.plants.filter(x => x.id !== p.id); }, { undoable: true }); toast(t("deleted"), true); }
+      }
+    });
+  });
+}
+
+/* ----- Water ----- */
+async function doWater(id) {
+  const p = state.plants.find(x => x.id === id); if (!p) return;
+  const btn = $app.querySelector(`[data-id="${CSS.escape(id)}"] .water-btn`);
+  if (btn) splash(btn);
+  await commit(s => { const i = s.plants.findIndex(x => x.id === id); s.plants[i] = waterPlant(s.plants[i]); }, { undoable: true });
+  const card = $app.querySelector(`[data-id="${CSS.escape(id)}"]`);
+  if (card) { card.classList.add("boing"); }
+  const msgs = I18N[LANG].thanks;
+  toast(msgs[Math.floor(Math.random() * msgs.length)](p.name), true);
+}
+function splash(el) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = el.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  for (let i = 0; i < 10; i++) {
+    const d = document.createElement("span"); d.className = "drop";
+    const a = (Math.PI * 2 * i) / 10 + Math.random() * .4, dist = 40 + Math.random() * 40;
+    d.style.left = cx - 5 + "px"; d.style.top = cy - 7 + "px";
+    d.style.setProperty("--dx", Math.cos(a) * dist + "px"); d.style.setProperty("--dy", Math.sin(a) * dist - 20 + "px");
+    document.body.appendChild(d); setTimeout(() => d.remove(), 850);
+  }
+}
+
+/* ----- Settings ----- */
+function openSettings() {
+  const s = state.settings;
+  const seg = (key, opts) => `<div class="seg small" role="group" aria-label="${esc(t(key))}">${opts.map(o => `<button type="button" data-set="${key}" data-val="${o}" aria-pressed="${s[key === "language" ? "lang" : "theme"] === o}">${esc(t((key === "language" ? "lang_" : "theme_") + o))}</button>`).join("")}</div>`;
+  const body = `
+    <div class="section-title">${esc(t("backup"))}</div>
+    <div class="group">
+      <p class="muted" style="margin-top:0">${esc(t("backupInfo"))}</p>
+      <p><strong id="bk-last">${esc(state.lastBackupAt ? t("lastBackup", fmtDate(state.lastBackupAt, { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })) : t("neverBackup"))}</strong></p>
+      ${inFrame ? "" : `<button class="btn btn-primary btn-block" type="button" data-b="file">${esc(t("exportFile"))}</button>`}
+      <button class="btn ${inFrame ? "btn-primary" : "btn-soft"} btn-block" type="button" data-b="copy">${esc(t("exportCopy"))}</button>
+      <label class="btn btn-soft btn-block file-label">${esc(t("importFile"))}<input type="file" accept="application/json,.json,.txt" id="bk-file"></label>
+      <textarea class="textarea" id="bk-paste" placeholder="${esc(t("pasteHere"))}" aria-label="${esc(t("pasteHere"))}" style="margin-top:8px"></textarea>
+      <button class="btn btn-soft btn-block" type="button" data-b="paste">${esc(t("importPaste"))}</button>
+    </div>
+    <div class="section-title">${esc(t("language"))}</div>${seg("language", ["auto", "cs", "en"])}
+    <div class="section-title">${esc(t("theme"))}</div>${seg("theme", ["auto", "light", "dark"])}
+    <p class="muted" style="text-align:center;margin-top:24px">${esc(t("about", APP_VERSION))}</p>`;
+  openSheet(t("settings"), body, sheet => {
+    sheet.addEventListener("click", async e => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.set) {
+        const k = b.dataset.set === "language" ? "lang" : "theme";
+        await commit(st => { st.settings[k] = b.dataset.val; });
+        applySettings(); render(); closeSheet(); setTimeout(openSettings, 230);
+      }
+      if (b.dataset.b === "file") exportFile();
+      if (b.dataset.b === "copy") exportCopy();
+      if (b.dataset.b === "paste") importText(sheet.querySelector("#bk-paste").value);
+    });
+    sheet.querySelector("#bk-file").addEventListener("change", async e => {
+      const f = e.target.files[0]; if (f) importText(await f.text()); e.target.value = "";
+    });
+  });
+}
+async function markBackedUp() { await commit(s => { s.lastBackupAt = new Date().toISOString(); }); }
+async function exportFile() {
+  const name = `kytitimiti-${new Date().toISOString().slice(0, 10)}.json`;
+  const blob = new Blob([buildBackup(state)], { type: "application/json" });
+  // iPhone: sdílecí nabídka → „Uložit do Souborů“; jinde klasické stažení
+  try {
+    const file = new File([blob], name, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: name });
+      await markBackedUp(); closeSheet(); toast(t("backupSaved")); return;
+    }
+  } catch (err) { if (err && err.name === "AbortError") return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  await markBackedUp(); closeSheet(); toast(t("backupSaved"));
+}
+async function exportCopy() {
+  try { await navigator.clipboard.writeText(buildBackup(state)); await markBackedUp(); closeSheet(); toast(t("copied")); }
+  catch { toast(t("copyFailed")); }
+}
+async function importText(text) {
+  let data;
+  try { data = parseBackup(String(text || "").trim()); } catch { toast(t("importError")); return; }
+  closeSheet(); await new Promise(r => setTimeout(r, 230));
+  const ok = await confirmDialog({ title: t("importConfirmTitle"), text: t("importConfirmText", data.plants.length), okLabel: t("restore") });
+  if (!ok) return;
+  await commit(s => { const lb = s.lastBackupAt; Object.assign(s, data, { lastBackupAt: lb }); }, { undoable: true });
+  applySettings(); render(); toast(t("imported"), true);
+}
+
+/* ----- Global events ----- */
+$app.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const id = b.closest("[data-id]")?.dataset.id;
+  ({ add: () => openForm(), settings: openSettings, detail: () => openDetail(id), water: () => doWater(id) })[b.dataset.act]?.();
+});
+$app.addEventListener("animationend", e => e.target.classList.remove("boing"));
+$fab.addEventListener("click", () => {
+  if (!Entitlements.can("addPlant", { count: state.plants.length })) return; // budoucí paywall
+  openForm();
+});
+// Přepnutí dne / návrat do aplikace → přepočítat stavy
+let lastDay = startOfDay(new Date()).getTime();
+setInterval(() => { const d = startOfDay(new Date()).getTime(); if (d !== lastDay) { lastDay = d; render(); } }, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+
+/* ----- Boot ----- */
+(async () => {
+  try { state = migrate(await Store.load()); } catch { state = defaultState(); }
+  applySettings(); render();
+  if ("serviceWorker" in navigator && !inFrame && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
