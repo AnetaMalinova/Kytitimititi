@@ -154,10 +154,12 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .photo-actions{display:flex;flex-direction:column;gap:var(--space-2);align-items:flex-start}
 .file-label{position:relative;overflow:hidden}
 .file-label input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2)}
-.seg button{min-height:72px;border-radius:var(--radius-m);background:var(--surface);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:600;font-size:var(--fs-s)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:var(--space-2)}
+.seg button{min-height:72px;border-radius:var(--radius-m);background:var(--surface);border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:600;font-size:var(--fs-s);text-align:center;line-height:1.2;padding:var(--space-2) var(--space-1)}
 .seg button[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
 .seg.small button{min-height:var(--tap);flex-direction:row}
+.leaves{display:flex;gap:0}.leaves svg.i{width:18px;height:18px}
+.hint{margin:var(--space-2) 0 0;font-size:var(--fs-xs)}
 .stepper{display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-m);padding:var(--space-2);border:2px solid var(--border)}
 .stepper button{width:48px;height:48px;border-radius:14px;background:var(--surface-2);font-size:1.5rem;font-weight:700}
 .stepper output{flex:1;text-align:center;font-weight:700;font-size:var(--fs-l)}
@@ -200,12 +202,14 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* =========================================================
    CONFIG
    ========================================================= */
-const APP_VERSION = "0.2.0"; // shodně s CACHE_VERSION v sw.js
-const SCHEMA_VERSION = 1;
+const APP_VERSION = "0.2.1"; // shodně s CACHE_VERSION v sw.js
+const SCHEMA_VERSION = 2;
 const LIMITS = { intervalMin: 1, intervalMax: 60, photoMaxPx: 720, photoQuality: 0.8, historyMax: 30, toastMs: 5000 };
 const INTERVAL_PRESETS = [2, 3, 7, 10, 14];
 const FALLBACK_EMOJI = ["🪴", "🌿", "🌵", "🌱", "🌸", "🍀", "🌼", "🎍"];
-const LIGHTS = ["shade", "partial", "sun"];
+const LIGHTS = ["shade", "partial", "indirect", "sun"];
+const CARE_LEVELS = ["easy", "medium", "hard"];
+const HUMIDITY_LEVELS = ["low", "medium", "high"];
 
 /* =========================================================
    ENTITLEMENTS – jediné místo, které rozhoduje o přístupu k funkcím.
@@ -237,8 +241,10 @@ const I18N = {
     name: "Jméno", namePh: "Třeba Monika Monstera", nameRequired: "Kytka potřebuje jméno",
     note: "Popisek", notePh: "Kde stojí, odkud je, co má ráda…",
     photo: "Fotka", addPhoto: "Přidat fotku", changePhoto: "Změnit fotku", removePhoto: "Odebrat fotku", photoError: "Fotku se nepodařilo načíst",
-    light: "Světlo", light_shade: "Stín", light_partial: "Polostín", light_sun: "Slunce",
+    light: "Světlo", light_shade: "Stín", light_partial: "Polostín", light_indirect: "Nepřímé slunce", light_sun: "Slunce",
     interval: "Jak často zalévat",
+    care: "Náročnost", care_easy: "Nenáročná", care_medium: "Střední", care_hard: "Náročná", careHint: "Nepovinné – ťuknutím znovu zrušíš",
+    humidity: "Vlhkost vzduchu", humidity_low: "Nízká", humidity_medium: "Střední", humidity_high: "Vysoká",
     every: n => n === 1 ? "Každý den" : `Každé ${n} ${P(n, "den", "dny", "dní")}`.replace(/^Každé (\d+) dní$/, "Každých $1 dní"),
     nDays: n => `${n} ${P(n, "den", "dny", "dní")}`,
     minus: "Méně dní", plus: "Více dní",
@@ -281,8 +287,10 @@ const I18N = {
     name: "Name", namePh: "e.g. Monty the Monstera", nameRequired: "Your plant needs a name",
     note: "Note", notePh: "Where it lives, where it's from, what it likes…",
     photo: "Photo", addPhoto: "Add photo", changePhoto: "Change photo", removePhoto: "Remove photo", photoError: "Couldn't load the photo",
-    light: "Light", light_shade: "Shade", light_partial: "Part sun", light_sun: "Sun",
+    light: "Light", light_shade: "Shade", light_partial: "Part shade", light_indirect: "Bright indirect", light_sun: "Sun",
     interval: "How often to water",
+    care: "Care level", care_easy: "Easy", care_medium: "Medium", care_hard: "Demanding", careHint: "Optional – tap again to clear",
+    humidity: "Air humidity", humidity_low: "Low", humidity_medium: "Medium", humidity_high: "High",
     every: n => n === 1 ? "Every day" : `Every ${n} days`,
     nDays: n => `${n} ${P(n, "day", "days", "days")}`,
     minus: "Fewer days", plus: "More days",
@@ -336,6 +344,7 @@ const ICONS = {
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   partial: '<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12 5.6A4 4 0 0 0 4.6 10"/><path d="M8 19h9a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.5 1.5A3.3 3.3 0 0 0 8 19z"/>',
+  indirect: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v.01M12 21.5v.01M2.5 12h.01M21.5 12h.01M5.3 5.3h.01M18.7 18.7h.01M5.3 18.7h.01M18.7 5.3h.01" stroke-width="2.6"/>',
   shade: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
   camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
@@ -368,7 +377,9 @@ function defaultState() {
 }
 const MIGRATIONS = {
   // 0 -> 1: příklad budoucích migrací; data bez verze považujeme za v0
-  0: s => ({ ...defaultState(), ...s, schemaVersion: 1 })
+  0: s => ({ ...defaultState(), ...s, schemaVersion: 1 }),
+  // 1 -> 2: náročnost péče a vlhkost vzduchu (u stávajících kytek nevyplněné)
+  1: s => ({ ...s, plants: (s.plants || []).map(p => ({ ...p, care: p.care ?? null, humidity: p.humidity ?? null })), schemaVersion: 2 })
 };
 function migrate(raw) {
   if (!raw || typeof raw !== "object") return defaultState();
@@ -387,6 +398,8 @@ function normalizePlant(p) {
     photo: typeof p.photo === "string" && p.photo.startsWith("data:image/") ? p.photo : null,
     emoji: p.emoji || FALLBACK_EMOJI[0],
     light: LIGHTS.includes(p.light) ? p.light : "partial",
+    care: CARE_LEVELS.includes(p.care) ? p.care : null,
+    humidity: HUMIDITY_LEVELS.includes(p.humidity) ? p.humidity : null,
     intervalDays: clamp(parseInt(p.intervalDays, 10) || 7, LIMITS.intervalMin, LIMITS.intervalMax),
     lastWatered: p.lastWatered || null,
     history: Array.isArray(p.history) ? p.history.slice(0, LIMITS.historyMax) : [],
@@ -598,7 +611,7 @@ function confirmDialog({ title, text, okLabel, danger = true }) {
 /* ----- Add / edit form ----- */
 function openForm(plant) {
   const isNew = !plant;
-  const draft = plant ? clone(plant) : { name: "", note: "", photo: null, light: "partial", intervalDays: 7, emoji: FALLBACK_EMOJI[Math.floor(Math.random() * FALLBACK_EMOJI.length)], lw: "today" };
+  const draft = plant ? clone(plant) : { name: "", note: "", photo: null, light: "partial", care: null, humidity: null, intervalDays: 7, emoji: FALLBACK_EMOJI[Math.floor(Math.random() * FALLBACK_EMOJI.length)], lw: "today" };
   const body = `<form id="pf" novalidate>
     <div class="field photo-pick">
       <span id="pf-av"></span>
@@ -619,6 +632,12 @@ function openForm(plant) {
         <output id="pf-int" aria-live="polite"></output>
         <button type="button" data-step="1" aria-label="${esc(t("plus"))}">+</button></div>
       <div class="presets">${INTERVAL_PRESETS.map(n => `<button type="button" data-preset="${n}">${esc(t("nDays", n))}</button>`).join("")}</div></div>
+    <div class="field"><span class="label" id="pf-care-l">${esc(t("care"))}</span>
+      <div class="seg" role="group" aria-labelledby="pf-care-l">${CARE_LEVELS.map((c, i) => `<button type="button" data-care="${c}" aria-pressed="${draft.care === c}"><span class="leaves">${icon("leaf").repeat(i + 1)}</span>${esc(t("care_" + c))}</button>`).join("")}</div>
+</div>
+    <div class="field"><span class="label" id="pf-hum-l">${esc(t("humidity"))}</span>
+      <div class="seg" role="group" aria-labelledby="pf-hum-l">${HUMIDITY_LEVELS.map((h, i) => `<button type="button" data-hum="${h}" aria-pressed="${draft.humidity === h}"><span class="leaves">${icon("drop").repeat(i + 1)}</span>${esc(t("humidity_" + h))}</button>`).join("")}</div>
+      <p class="muted hint">${esc(t("careHint"))}</p></div>
     ${isNew ? `<div class="field"><span class="label" id="pf-lw-l">${esc(t("lastWatered"))}</span>
       <div class="seg small" role="group" aria-labelledby="pf-lw-l">${["today", "yesterday", "unknown"].map(k => `<button type="button" data-lw="${k}" aria-pressed="${draft.lw === k}">${esc(t("lw_" + k))}</button>`).join("")}</div></div>` : ""}
     <div class="field"><label class="label" for="pf-note">${esc(t("note"))}</label>
@@ -635,12 +654,16 @@ function openForm(plant) {
       $("#pf-int").textContent = t("every", draft.intervalDays);
       sheet.querySelectorAll("[data-preset]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.preset === draft.intervalDays));
       sheet.querySelectorAll("[data-light]").forEach(b => b.setAttribute("aria-pressed", b.dataset.light === draft.light));
+      sheet.querySelectorAll("[data-care]").forEach(b => b.setAttribute("aria-pressed", b.dataset.care === draft.care));
+      sheet.querySelectorAll("[data-hum]").forEach(b => b.setAttribute("aria-pressed", b.dataset.hum === draft.humidity));
       sheet.querySelectorAll("[data-lw]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lw === draft.lw));
     };
     sync();
     sheet.addEventListener("click", e => {
       const b = e.target.closest("button"); if (!b) return;
       if (b.dataset.light) draft.light = b.dataset.light;
+      else if (b.dataset.care) draft.care = draft.care === b.dataset.care ? null : b.dataset.care;
+      else if (b.dataset.hum) draft.humidity = draft.humidity === b.dataset.hum ? null : b.dataset.hum;
       else if (b.dataset.step) draft.intervalDays = clamp(draft.intervalDays + +b.dataset.step, LIMITS.intervalMin, LIMITS.intervalMax);
       else if (b.dataset.preset) draft.intervalDays = +b.dataset.preset;
       else if (b.dataset.lw) draft.lw = b.dataset.lw;
@@ -700,6 +723,8 @@ function openDetail(id) {
       <div class="fact"><small>${esc(t("nextWatering"))}</small><strong>${icon("calendar")}${esc(st.isDue ? st.label : fmtDate(st.next))}</strong></div>
       <div class="fact"><small>${esc(t("interval"))}</small><strong>${icon("drop")}${esc(t("every", p.intervalDays))}</strong></div>
       <div class="fact"><small>${esc(t("light"))}</small><strong>${icon(p.light)}${esc(t("light_" + p.light))}</strong></div>
+      ${p.humidity ? `<div class="fact"><small>${esc(t("humidity"))}</small><strong>${icon("drop")}${esc(t("humidity_" + p.humidity))}</strong></div>` : ""}
+      ${p.care ? `<div class="fact"><small>${esc(t("care"))}</small><strong>${icon("leaf")}${esc(t("care_" + p.care))}</strong></div>` : ""}
       <div class="fact"><small>${esc(t("lastWateredFact"))}</small><strong>${esc(p.lastWatered ? fmtDate(p.lastWatered) : "—")}</strong></div>
     </div>
     ${p.note ? `<div class="note">${esc(p.note)}</div>` : ""}
