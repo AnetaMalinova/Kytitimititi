@@ -61,7 +61,8 @@
 
 /* ===== Base ===== */
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;font-size:100%}
+html{-webkit-text-size-adjust:100%;font-size:100%;touch-action:manipulation}
+html,body{overflow-x:clip;max-width:100%}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:var(--fs-m);line-height:1.4;
   -webkit-tap-highlight-color:transparent;min-height:100vh}
 button,input,textarea{font:inherit;color:inherit}
@@ -92,7 +93,7 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* Cards */
 .list{display:grid;gap:var(--space-3);list-style:none;margin:0;padding:0}
 .card-wrap{position:relative;border-radius:var(--radius-l)}
-.swipe-act{position:absolute;inset:0;border-radius:var(--radius-l);background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;gap:var(--space-2);padding-left:var(--space-5);font-weight:700;font-size:var(--fs-s)}
+.swipe-act{position:absolute;inset:0;border-radius:var(--radius-l);background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);padding-right:var(--space-5);font-weight:700;font-size:var(--fs-s)}
 .card{position:relative;z-index:1;touch-action:pan-y;transition:transform .22s cubic-bezier(.2,.9,.3,1);display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-l);padding:var(--space-4) var(--space-3) var(--space-4) var(--space-4);box-shadow:var(--shadow)}
 .card.is-due{box-shadow:var(--shadow),inset 0 0 0 2px var(--warn)}
 .card-main{flex:1;display:flex;align-items:center;gap:var(--space-4);min-width:0;text-align:left;min-height:var(--tap);border-radius:var(--radius-m)}
@@ -229,7 +230,7 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* =========================================================
    CONFIG
    ========================================================= */
-const APP_VERSION = "0.2.4"; // shodně s CACHE_VERSION v sw.js
+const APP_VERSION = "0.2.5"; // shodně s CACHE_VERSION v sw.js
 const SCHEMA_VERSION = 2;
 const LIMITS = { intervalMin: 1, intervalMax: 60, photoMaxPx: 720, zoomMax: 4, photoQuality: 0.8, historyMax: 30, toastMs: 5000, swipeOpen: 184, swipeMax: 220 };
 const INTERVAL_PRESETS = [2, 3, 7, 10, 14];
@@ -959,7 +960,7 @@ $app.addEventListener("click", e => {
   ({ add: () => openForm(), settings: openSettings, detail: () => openDetail(id), water: () => doWater(id), unwater: () => doUnwater(id) })[b.dataset.act]?.();
 });
 
-/* ----- Swipe doprava na kartě → „Zrušit zalití“ ----- */
+/* ----- Swipe doleva na kartě → „Zrušit zalití“ (vpravo, jako v iOS) ----- */
 let swipe = null, openCard = null, suppressClick = false;
 function setSwipe(card, x) { card.style.transform = x ? `translateX(${x}px)` : ""; }
 function closeSwipe() { if (openCard) setSwipe(openCard, 0); openCard = null; }
@@ -967,7 +968,7 @@ $app.addEventListener("pointerdown", e => {
   const card = e.target.closest(".card");
   if (openCard && openCard !== card) closeSwipe();
   if (!card || !card.parentElement.dataset.canUnwater || e.target.closest(".water-btn")) return;
-  swipe = { card, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, active: false, base: card === openCard ? LIMITS.swipeOpen : 0 };
+  swipe = { card, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, active: false, base: card === openCard ? -LIMITS.swipeOpen : 0 };
 });
 $app.addEventListener("pointermove", e => {
   if (!swipe || e.pointerId !== swipe.id) return;
@@ -978,7 +979,7 @@ $app.addEventListener("pointermove", e => {
       try { swipe.card.setPointerCapture(e.pointerId); } catch {}
     } else if (Math.abs(dy) > 10) { swipe = null; return; } else return;
   }
-  swipe.dx = clamp(swipe.base + dx, 0, LIMITS.swipeMax);
+  swipe.dx = clamp(swipe.base + dx, -LIMITS.swipeMax, 0);
   setSwipe(swipe.card, swipe.dx);
 });
 function endSwipe() {
@@ -986,12 +987,13 @@ function endSwipe() {
   if (!s || !s.active) return;
   s.card.classList.remove("dragging");
   suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
-  if (s.dx > LIMITS.swipeOpen / 2) { setSwipe(s.card, LIMITS.swipeOpen); openCard = s.card; }
+  if (-s.dx > LIMITS.swipeOpen / 2) { setSwipe(s.card, -LIMITS.swipeOpen); openCard = s.card; }
   else { setSwipe(s.card, 0); if (openCard === s.card) openCard = null; }
 }
+$app.addEventListener("touchmove", e => { if (swipe && swipe.active) e.preventDefault(); }, { passive: false });
 $app.addEventListener("pointerup", endSwipe);
 // Klávesnice / VoiceOver: fokus na „Zrušit zalití“ kartu odsune, aby bylo tlačítko vidět
-$app.addEventListener("focusin", e => { const a = e.target.closest(".swipe-act"); if (!a) return; const c = a.parentElement.querySelector(".card"); closeSwipe(); setSwipe(c, LIMITS.swipeOpen); openCard = c; });
+$app.addEventListener("focusin", e => { const a = e.target.closest(".swipe-act"); if (!a) return; const c = a.parentElement.querySelector(".card"); closeSwipe(); setSwipe(c, -LIMITS.swipeOpen); openCard = c; });
 $app.addEventListener("focusout", e => { if (e.target.closest(".swipe-act") && !e.relatedTarget?.closest?.(".swipe-act")) setTimeout(() => { if (!document.activeElement?.closest?.(".swipe-act")) closeSwipe(); }, 0); });
 $app.addEventListener("pointercancel", endSwipe);
 $app.addEventListener("click", e => {
