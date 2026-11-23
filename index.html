@@ -85,11 +85,13 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 
 /* Cards */
 .list{display:grid;gap:var(--space-3);list-style:none;margin:0;padding:0}
-.card{position:relative;display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-l);padding:var(--space-3);box-shadow:var(--shadow)}
+.card-wrap{position:relative;border-radius:var(--radius-l)}
+.swipe-act{position:absolute;inset:0;border-radius:var(--radius-l);background:var(--warn-soft);color:var(--warn);display:flex;align-items:center;gap:var(--space-2);padding-left:var(--space-5);font-weight:700;font-size:var(--fs-s)}
+.card{position:relative;z-index:1;touch-action:pan-y;transition:transform .22s cubic-bezier(.2,.9,.3,1);display:flex;align-items:center;gap:var(--space-3);background:var(--surface);border-radius:var(--radius-l);padding:var(--space-3);box-shadow:var(--shadow)}
 .card.is-due{box-shadow:var(--shadow),inset 0 0 0 2px var(--warn)}
 .card-main{flex:1;display:flex;align-items:center;gap:var(--space-3);min-width:0;text-align:left;min-height:var(--tap);border-radius:var(--radius-m)}
 .avatar{position:relative;width:var(--avatar);height:var(--avatar);border-radius:22px;background:var(--primary-soft);flex:none;display:grid;place-items:center;font-size:34px;overflow:visible}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
+.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
 .mood{position:absolute;right:-6px;bottom:-6px;width:28px;height:28px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:17px;box-shadow:var(--shadow)}
 .meta{min-width:0;flex:1}
 .meta h2{margin:0;font-size:var(--fs-m);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -109,6 +111,7 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* Fun animations */
 @keyframes boing{0%{transform:scale(1)}30%{transform:scale(1.04,.96)}55%{transform:scale(.98,1.03)}100%{transform:scale(1)}}
 .card.boing{animation:boing .5s ease}
+.card.dragging{transition:none;user-select:none;-webkit-user-select:none}
 .drop{position:fixed;width:10px;height:14px;background:var(--water);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;pointer-events:none;z-index:60;animation:fly .8s ease-out forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.card.boing,.drop,.sheet,.toast{animation:none!important;transition:none!important}}
@@ -169,8 +172,8 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .actions{display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-4)}
 
 /* Detail */
-.hero{width:100%;aspect-ratio:4/3;border-radius:var(--radius-l);background:var(--primary-soft);display:grid;place-items:center;font-size:96px;overflow:hidden;margin-bottom:var(--space-4)}
-.hero img{width:100%;height:100%;object-fit:cover}
+.hero{position:relative;width:100%;max-width:420px;margin-left:auto;margin-right:auto;aspect-ratio:1/1;border-radius:var(--radius-l);background:var(--primary-soft);display:grid;place-items:center;font-size:96px;overflow:hidden;margin-bottom:var(--space-4)}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .facts{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-4)}
 .fact{background:var(--surface);border-radius:var(--radius-m);padding:var(--space-3)}
 .fact small{display:block;color:var(--text-2);font-size:var(--fs-xs);font-weight:600}
@@ -181,6 +184,20 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .section-title{font-size:var(--fs-s);font-weight:700;color:var(--text-2);margin:var(--space-4) 0 var(--space-2)}
 .group{background:var(--surface);border-radius:var(--radius-m);padding:var(--space-4);margin-bottom:var(--space-4)}
 .group .btn{margin-top:var(--space-2)}
+
+/* Cropper */
+.cropper{position:fixed;inset:0;z-index:80;background:#0B0D06;color:#F4F3E8;display:flex;flex-direction:column;
+  padding:calc(var(--space-3) + var(--safe-t)) calc(var(--space-4) + var(--safe-r)) calc(var(--space-5) + var(--safe-b)) calc(var(--space-4) + var(--safe-l))}
+.crop-top{display:flex;align-items:center;gap:var(--space-2)}
+.crop-top h2{flex:1;text-align:center;margin:0;font-size:var(--fs-m)}
+.crop-top button{min-height:var(--tap);padding:0 var(--space-3);border-radius:999px;font-weight:700;color:#F4F3E8}
+.crop-top .use{background:#B7C77C;color:#1A1F08;padding:0 var(--space-4)}
+.crop-stage{flex:1;display:grid;place-items:center;min-height:0}
+.crop-box{position:relative;width:min(86vw,360px,55vh);aspect-ratio:1/1;overflow:hidden;border-radius:30px;box-shadow:0 0 0 2px rgba(255,255,255,.9);touch-action:none;cursor:grab;background:#222}
+.crop-box img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.crop-zoom{display:flex;align-items:center;gap:var(--space-3);max-width:420px;width:100%;margin:0 auto}
+.crop-zoom input{flex:1;height:var(--tap);accent-color:#B7C77C}
+.crop-hint{text-align:center;margin:var(--space-2) 0 0;font-size:var(--fs-s);color:#B9BDA4}
 
 /* Toast */
 .toast{position:fixed;left:50%;bottom:calc(var(--fab) + var(--space-6) + var(--safe-b));transform:translate(-50%,20px);opacity:0;background:var(--text);color:var(--bg);border-radius:999px;padding:var(--space-2) var(--space-2) var(--space-2) var(--space-5);display:flex;align-items:center;gap:var(--space-3);z-index:70;width:max-content;max-width:calc(100% - 32px);transition:all .25s;box-shadow:var(--shadow);font-weight:600;font-size:var(--fs-s)}
@@ -202,9 +219,9 @@ svg.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* =========================================================
    CONFIG
    ========================================================= */
-const APP_VERSION = "0.2.1"; // shodně s CACHE_VERSION v sw.js
+const APP_VERSION = "0.2.2"; // shodně s CACHE_VERSION v sw.js
 const SCHEMA_VERSION = 2;
-const LIMITS = { intervalMin: 1, intervalMax: 60, photoMaxPx: 720, photoQuality: 0.8, historyMax: 30, toastMs: 5000 };
+const LIMITS = { intervalMin: 1, intervalMax: 60, photoMaxPx: 720, zoomMax: 4, photoQuality: 0.8, historyMax: 30, toastMs: 5000, swipeOpen: 184, swipeMax: 220 };
 const INTERVAL_PRESETS = [2, 3, 7, 10, 14];
 const FALLBACK_EMOJI = ["🪴", "🌿", "🌵", "🌱", "🌸", "🍀", "🌼", "🎍"];
 const LIGHTS = ["shade", "partial", "indirect", "sun"];
@@ -241,6 +258,7 @@ const I18N = {
     name: "Jméno", namePh: "Třeba Monika Monstera", nameRequired: "Kytka potřebuje jméno",
     note: "Popisek", notePh: "Kde stojí, odkud je, co má ráda…",
     photo: "Fotka", addPhoto: "Přidat fotku", changePhoto: "Změnit fotku", removePhoto: "Odebrat fotku", photoError: "Fotku se nepodařilo načíst",
+    cropTitle: "Oříznout fotku", cropUse: "Použít", cropZoom: "Přiblížení", cropHint: "Posuň fotku prstem, přibliž dvěma prsty nebo posuvníkem",
     light: "Světlo", light_shade: "Stín", light_partial: "Polostín", light_indirect: "Nepřímé slunce", light_sun: "Slunce",
     interval: "Jak často zalévat",
     care: "Náročnost", care_easy: "Nenáročná", care_medium: "Střední", care_hard: "Náročná", careHint: "Nepovinné – ťuknutím znovu zrušíš",
@@ -254,6 +272,7 @@ const I18N = {
     dueToday: "Dnes zalít",
     overdue: n => `Žízní ${n} ${P(n, "den", "dny", "dní")}`,
     wateredToday: "Zalito dnes",
+    unwater: "Zrušit zalití", unwaterFrom: d => `Zrušit zalití z ${d}`, unwatered: "Zalití zrušeno",
     neverWatered: "Ještě nezalitá",
     thanks: [n => `Glo glo! ${n} děkuje 💧`, n => `Ááách, to bodlo! – ${n}`, n => `${n} roste radostí 🌱`, n => `Mňam, voda! ${n} je happy`],
     nextWatering: "Další zalití", lastWateredFact: "Naposledy",
@@ -287,6 +306,7 @@ const I18N = {
     name: "Name", namePh: "e.g. Monty the Monstera", nameRequired: "Your plant needs a name",
     note: "Note", notePh: "Where it lives, where it's from, what it likes…",
     photo: "Photo", addPhoto: "Add photo", changePhoto: "Change photo", removePhoto: "Remove photo", photoError: "Couldn't load the photo",
+    cropTitle: "Crop photo", cropUse: "Use", cropZoom: "Zoom", cropHint: "Drag to move, pinch or use the slider to zoom",
     light: "Light", light_shade: "Shade", light_partial: "Part shade", light_indirect: "Bright indirect", light_sun: "Sun",
     interval: "How often to water",
     care: "Care level", care_easy: "Easy", care_medium: "Medium", care_hard: "Demanding", careHint: "Optional – tap again to clear",
@@ -300,6 +320,7 @@ const I18N = {
     dueToday: "Water today",
     overdue: n => `Thirsty for ${n} ${P(n, "day", "days", "days")}`,
     wateredToday: "Watered today",
+    unwater: "Undo watering", unwaterFrom: d => `Undo watering from ${d}`, unwatered: "Watering undone",
     neverWatered: "Not watered yet",
     thanks: [n => `Glug glug! ${n} says thanks 💧`, n => `Ahh, that hit the spot! – ${n}`, n => `${n} is growing with joy 🌱`, n => `Yum, water! ${n} is happy`],
     nextWatering: "Next watering", lastWateredFact: "Last",
@@ -341,6 +362,9 @@ const ICONS = {
   gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   drop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  zoomOut: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M8 11h6"/>',
+  zoomIn: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M8 11h6M11 8v6"/>',
+  undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   partial: '<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12 5.6A4 4 0 0 0 4.6 10"/><path d="M8 19h9a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.5 1.5A3.3 3.3 0 0 0 8 19z"/>',
@@ -464,6 +488,10 @@ function waterPlant(p, when = new Date()) {
   const iso = when.toISOString();
   return { ...p, lastWatered: iso, history: [iso, ...p.history].slice(0, LIMITS.historyMax) };
 }
+function unwaterPlant(p) {
+  const history = p.history.slice(1);
+  return { ...p, history, lastWatered: history[0] || null };
+}
 function needsBackupNudge(s, now = new Date()) {
   if (!s.plants.length) return false;
   if (!s.lastBackupAt) return s.plants.length >= 2;
@@ -531,6 +559,7 @@ function render() {
   } else {
     html += `<ul class="list">${plants.map(cardHtml).join("")}</ul>`;
   }
+  openCard = null;
   $app.innerHTML = html;
   $fab.hidden = !plants.length;
   $fab.innerHTML = icon("plus");
@@ -543,7 +572,10 @@ function avatarHtml(p, withMood, mood) {
 }
 function cardHtml(p) {
   const st = plantStatus(p);
-  return `<li class="card ${st.isDue ? "is-due" : ""}" data-id="${p.id}">
+  const canUnwater = p.history.length > 0;
+  return `<li class="card-wrap" data-id="${p.id}" ${canUnwater ? 'data-can-unwater="1"' : ""}>
+    ${canUnwater ? `<button class="swipe-act" type="button" data-act="unwater" tabindex="-1" aria-hidden="true">${icon("undo")}${esc(t("unwater"))}</button>` : ""}
+    <div class="card ${st.isDue ? "is-due" : ""}">
     <button class="card-main" type="button" data-act="detail" aria-label="${esc(t("openDetail", p.name))}">
       ${avatarHtml(p, true, st.mood)}
       <span class="meta">
@@ -556,6 +588,7 @@ function cardHtml(p) {
       </span>
     </button>
     <button class="water-btn ${st.isDue ? "hot" : ""}" type="button" data-act="water" aria-label="${esc(t("waterAria", p.name))}">${icon("drop")}</button>
+    </div>
   </li>`;
 }
 
@@ -673,7 +706,7 @@ function openForm(plant) {
     });
     $("#pf-file").addEventListener("change", async e => {
       const f = e.target.files[0]; if (!f) return;
-      try { draft.photo = await resizeImage(f); sync(); } catch { toast(t("photoError")); }
+      try { const out = await cropImage(f); if (out) { draft.photo = out; sync(); } } catch { toast(t("photoError")); }
       e.target.value = "";
     });
     $("#pf-name").addEventListener("input", () => { $("#pf-err").hidden = true; });
@@ -697,16 +730,72 @@ function openForm(plant) {
   });
 }
 
-function resizeImage(file) {
-  return new Promise((res, rej) => {
+/* Ořez fotky do čtverce (stejný poměr jako náhled kytky) */
+function cropImage(file) {
+  return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file); const img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("img")); };
     img.onload = () => {
-      const k = Math.min(1, LIMITS.photoMaxPx / Math.max(img.width, img.height));
-      const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", LIMITS.photoQuality));
+      const el = document.createElement("div");
+      el.className = "cropper"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "crop-title");
+      el.innerHTML = `<div class="crop-top">
+          <button type="button" data-c="cancel">${esc(t("cancel"))}</button>
+          <h2 id="crop-title">${esc(t("cropTitle"))}</h2>
+          <button type="button" class="use" data-c="use">${esc(t("cropUse"))}</button></div>
+        <div class="crop-stage"><div class="crop-box"></div></div>
+        <div class="crop-zoom">${icon("zoomOut")}<input type="range" min="1" max="${LIMITS.zoomMax}" step="0.01" value="1" aria-label="${esc(t("cropZoom"))}">${icon("zoomIn")}</div>
+        <p class="crop-hint">${esc(t("cropHint"))}</p>`;
+      document.body.appendChild(el);
+      const box = el.querySelector(".crop-box"), range = el.querySelector("input");
+      box.appendChild(img);
+      const W = img.naturalWidth, H = img.naturalHeight;
+      let B = box.getBoundingClientRect().width;
+      const cover = () => Math.max(B / W, B / H);
+      let zoom = 1, sc = cover(), x = (B - W * sc) / 2, y = (B - H * sc) / 2;
+      const apply = () => {
+        x = clamp(x, B - W * sc, 0); y = clamp(y, B - H * sc, 0);
+        img.style.width = W + "px"; img.style.height = H + "px";
+        img.style.transform = `translate(${x}px,${y}px) scale(${sc})`;
+      };
+      const setZoom = (z, cx = B / 2, cy = B / 2) => {
+        zoom = clamp(z, 1, LIMITS.zoomMax);
+        const nsc = cover() * zoom, px = (cx - x) / sc, py = (cy - y) / sc;
+        sc = nsc; x = cx - px * sc; y = cy - py * sc; range.value = zoom; apply();
+      };
+      apply();
+      const pts = new Map(); let pinch = null;
+      box.addEventListener("pointerdown", e => { box.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: zoom }; } });
+      box.addEventListener("pointermove", e => {
+        const prev = pts.get(e.pointerId); if (!prev) return;
+        const cur = { x: e.clientX, y: e.clientY }; pts.set(e.pointerId, cur);
+        if (pts.size === 1) { x += cur.x - prev.x; y += cur.y - prev.y; apply(); }
+        else if (pinch) {
+          const [a, b] = [...pts.values()]; const r = box.getBoundingClientRect();
+          setZoom(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+        }
+      });
+      const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; };
+      box.addEventListener("pointerup", up); box.addEventListener("pointercancel", up);
+      box.addEventListener("wheel", e => { e.preventDefault(); const r = box.getBoundingClientRect(); setZoom(zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+      range.addEventListener("input", () => setZoom(+range.value));
+      const onResize = () => { const nb = box.getBoundingClientRect().width; if (nb && nb !== B) { x *= nb / B; y *= nb / B; sc *= nb / B; B = nb; apply(); } };
+      window.addEventListener("resize", onResize);
+      const finish = out => {
+        window.removeEventListener("resize", onResize); document.removeEventListener("keydown", onKey, true);
+        el.remove(); URL.revokeObjectURL(url); resolve(out);
+      };
+      const onKey = e => { if (e.key === "Escape") { e.stopPropagation(); finish(null); } };
+      document.addEventListener("keydown", onKey, true);
+      el.addEventListener("click", e => {
+        const b = e.target.closest("[data-c]"); if (!b) return;
+        if (b.dataset.c === "cancel") return finish(null);
+        const side = Math.min(LIMITS.photoMaxPx, Math.round(B / sc));
+        const c = document.createElement("canvas"); c.width = c.height = side;
+        c.getContext("2d").drawImage(img, -x / sc, -y / sc, B / sc, B / sc, 0, 0, side, side);
+        finish(c.toDataURL("image/jpeg", LIMITS.photoQuality));
+      });
+      el.querySelector("[data-c=use]").focus();
     };
-    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("img")); };
     img.src = url;
   });
 }
@@ -731,6 +820,7 @@ function openDetail(id) {
     <div class="section-title">${esc(t("history"))}</div>${hist}
     <div class="actions">
       <button class="btn btn-water btn-block" type="button" data-d="water">${icon("drop")}${esc(t("water"))}</button>
+      ${p.history.length ? `<button class="btn btn-soft btn-block" type="button" data-d="unwater">${icon("undo")}${esc(t("unwaterFrom", fmtDate(p.history[0], { day: "numeric", month: "numeric" })))}</button>` : ""}
       <button class="btn btn-soft btn-block" type="button" data-d="edit">${icon("edit")}${esc(t("edit"))}</button>
       <button class="btn btn-text btn-block" type="button" data-d="delete">${icon("trash")}${esc(t("del"))}</button>
     </div>`;
@@ -738,6 +828,7 @@ function openDetail(id) {
     sheet.addEventListener("click", async e => {
       const b = e.target.closest("[data-d]"); if (!b) return;
       if (b.dataset.d === "water") { closeSheet(); doWater(p.id); }
+      if (b.dataset.d === "unwater") { closeSheet(); doUnwater(p.id); }
       if (b.dataset.d === "edit") { closeSheet(); setTimeout(() => openForm(p), 230); }
       if (b.dataset.d === "delete") {
         closeSheet();
@@ -755,10 +846,15 @@ async function doWater(id) {
   const btn = $app.querySelector(`[data-id="${CSS.escape(id)}"] .water-btn`);
   if (btn) splash(btn);
   await commit(s => { const i = s.plants.findIndex(x => x.id === id); s.plants[i] = waterPlant(s.plants[i]); }, { undoable: true });
-  const card = $app.querySelector(`[data-id="${CSS.escape(id)}"]`);
+  const card = $app.querySelector(`[data-id="${CSS.escape(id)}"] .card`);
   if (card) { card.classList.add("boing"); }
   const msgs = I18N[LANG].thanks;
   toast(msgs[Math.floor(Math.random() * msgs.length)](p.name), true);
+}
+async function doUnwater(id) {
+  const p = state.plants.find(x => x.id === id); if (!p || !p.history.length) return;
+  await commit(s => { const i = s.plants.findIndex(x => x.id === id); s.plants[i] = unwaterPlant(s.plants[i]); }, { undoable: true });
+  toast(t("unwatered"), true);
 }
 function splash(el) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -841,8 +937,45 @@ async function importText(text) {
 $app.addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if (!b) return;
   const id = b.closest("[data-id]")?.dataset.id;
-  ({ add: () => openForm(), settings: openSettings, detail: () => openDetail(id), water: () => doWater(id) })[b.dataset.act]?.();
+  ({ add: () => openForm(), settings: openSettings, detail: () => openDetail(id), water: () => doWater(id), unwater: () => doUnwater(id) })[b.dataset.act]?.();
 });
+
+/* ----- Swipe doprava na kartě → „Zrušit zalití“ ----- */
+let swipe = null, openCard = null, suppressClick = false;
+function setSwipe(card, x) { card.style.transform = x ? `translateX(${x}px)` : ""; }
+function closeSwipe() { if (openCard) setSwipe(openCard, 0); openCard = null; }
+$app.addEventListener("pointerdown", e => {
+  const card = e.target.closest(".card");
+  if (openCard && openCard !== card) closeSwipe();
+  if (!card || !card.parentElement.dataset.canUnwater || e.target.closest(".water-btn")) return;
+  swipe = { card, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, active: false, base: card === openCard ? LIMITS.swipeOpen : 0 };
+});
+$app.addEventListener("pointermove", e => {
+  if (!swipe || e.pointerId !== swipe.id) return;
+  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+  if (!swipe.active) {
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      swipe.active = true; swipe.card.classList.add("dragging");
+      try { swipe.card.setPointerCapture(e.pointerId); } catch {}
+    } else if (Math.abs(dy) > 10) { swipe = null; return; } else return;
+  }
+  swipe.dx = clamp(swipe.base + dx, 0, LIMITS.swipeMax);
+  setSwipe(swipe.card, swipe.dx);
+});
+function endSwipe() {
+  const s = swipe; swipe = null;
+  if (!s || !s.active) return;
+  s.card.classList.remove("dragging");
+  suppressClick = true; setTimeout(() => { suppressClick = false; }, 0);
+  if (s.dx > LIMITS.swipeOpen / 2) { setSwipe(s.card, LIMITS.swipeOpen); openCard = s.card; }
+  else { setSwipe(s.card, 0); if (openCard === s.card) openCard = null; }
+}
+$app.addEventListener("pointerup", endSwipe);
+$app.addEventListener("pointercancel", endSwipe);
+$app.addEventListener("click", e => {
+  if (suppressClick) { e.stopPropagation(); e.preventDefault(); return; }
+  if (openCard && !e.target.closest(".swipe-act")) { e.stopPropagation(); closeSwipe(); }
+}, true);
 $app.addEventListener("animationend", e => e.target.classList.remove("boing"));
 $fab.addEventListener("click", () => {
   if (!Entitlements.can("addPlant", { count: state.plants.length })) return; // budoucí paywall

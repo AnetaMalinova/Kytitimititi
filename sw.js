@@ -1,6 +1,6 @@
 /* Kytitimiti service worker – offline cache.
    Při každém vydání zvyš CACHE_VERSION (shodně s APP_VERSION v index.html). */
-const CACHE_VERSION = "0.2.1";
+const CACHE_VERSION = "0.2.2";
 const CACHE = `kytitimiti-${CACHE_VERSION}`;
 const ASSETS = [
   "./",
